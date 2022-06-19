@@ -1,6 +1,6 @@
 package taxi.model;
 
-class ModelsGenerator {
+public class ModelsGenerator {
 
     public static Manufacturer generateManufacturer(String country, String name) {
         Manufacturer manufacturer = new Manufacturer();

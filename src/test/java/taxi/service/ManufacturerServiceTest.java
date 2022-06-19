@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 import taxi.dao.ManufacturerDao;
 import taxi.exception.DataProcessingException;
 import taxi.model.Manufacturer;
+import taxi.model.ModelsGenerator;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
@@ -28,9 +29,9 @@ class ManufacturerServiceTest {
     private static final String SECOND_NAME = "Toyota";
     private static final Long SECOND_ID = 2l;
     private static final Manufacturer FIRST_MANUFACTURER =
-            mockManufacturer(FIRST_COUNTRY, FIRST_NAME);
+            ModelsGenerator.generateManufacturer(FIRST_COUNTRY, FIRST_NAME);
     private static final Manufacturer SECOND_MANUFACTURER =
-            mockManufacturer(SECOND_COUNTRY, SECOND_NAME);
+            ModelsGenerator.generateManufacturer(SECOND_COUNTRY, SECOND_NAME);
     private ManufacturerService manufacturerService = new ManufacturerServiceImpl();
     private ManufacturerDao manufacturerDao = Mockito.mock(ManufacturerDao.class);
 
@@ -42,7 +43,8 @@ class ManufacturerServiceTest {
     @Test
     void create_Ok() {
         Mockito.when(manufacturerDao.create(FIRST_MANUFACTURER))
-                .thenReturn(mockPersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER));
+                .thenReturn(ModelsGenerator.generatePersistentManufacturer(FIRST_ID,
+                        FIRST_MANUFACTURER));
         Manufacturer actual = manufacturerService.create(FIRST_MANUFACTURER);
         assertNotNull(actual);
         assertEquals(FIRST_MANUFACTURER, actual);
@@ -59,8 +61,8 @@ class ManufacturerServiceTest {
     @Test
     void get_Ok() {
         Mockito.when(manufacturerDao.get(FIRST_ID))
-                .thenReturn(Optional.of(mockPersistentManufacturer(FIRST_ID,
-                        mockPersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER))));
+                .thenReturn(Optional.of(ModelsGenerator.generatePersistentManufacturer(FIRST_ID,
+                        FIRST_MANUFACTURER)));
         Manufacturer actual = manufacturerService.get(FIRST_ID);
         assertNotNull(actual);
         assertEquals(FIRST_MANUFACTURER, actual);
@@ -82,8 +84,8 @@ class ManufacturerServiceTest {
     @Test
     void getAll_Ok() {
         List<Manufacturer> expected = List.of(
-                mockPersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER),
-                mockPersistentManufacturer(SECOND_ID, SECOND_MANUFACTURER));
+                ModelsGenerator.generatePersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER),
+                ModelsGenerator.generatePersistentManufacturer(SECOND_ID, SECOND_MANUFACTURER));
         Mockito.when(manufacturerDao.getAll()).thenReturn(expected);
         List<Manufacturer> actual = manufacturerService.getAll();
         assertNotNull(actual);
@@ -108,7 +110,8 @@ class ManufacturerServiceTest {
     @Test
     void update_Ok() {
         Mockito.when(manufacturerDao.update(FIRST_MANUFACTURER))
-                .thenReturn(mockPersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER));
+                .thenReturn(ModelsGenerator.generatePersistentManufacturer(FIRST_ID,
+                        FIRST_MANUFACTURER));
         Manufacturer actual = manufacturerService.update(FIRST_MANUFACTURER);
         assertNotNull(actual);
         assertEquals(FIRST_MANUFACTURER, actual);
@@ -119,7 +122,8 @@ class ManufacturerServiceTest {
         Mockito.when(manufacturerDao.update(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
                 () -> manufacturerService.update(
-                        mockPersistentManufacturer(FIRST_ID, FIRST_MANUFACTURER)));
+                        ModelsGenerator.generatePersistentManufacturer(FIRST_ID,
+                                FIRST_MANUFACTURER)));
     }
 
     @Test
@@ -140,26 +144,6 @@ class ManufacturerServiceTest {
         assertThrows(DataProcessingException.class, () -> manufacturerService.delete(FIRST_ID));
     }
 
-    private static Manufacturer mockManufacturer(String country, String name) {
-        Manufacturer manufacturer = new Manufacturer();
-        manufacturer.setCountry(country);
-        manufacturer.setName(name);
-        return manufacturer;
-    }
-
-    private static Manufacturer mockPersistentManufacturer(Long id, Manufacturer expected) {
-        expected.setId(id);
-        return expected;
-    }
-
-    private static Manufacturer mockPersistentManufacturer(Long id, String country, String name) {
-        Manufacturer manufacturer = new Manufacturer();
-        manufacturer.setId(id);
-        manufacturer.setCountry(country);
-        manufacturer.setName(name);
-        return manufacturer;
-    }
-
     private void injectDao(ManufacturerDao manufacturerDao)
             throws NoSuchFieldException, IllegalAccessException {
         Field manufacturerDaoField =
@@ -167,5 +151,4 @@ class ManufacturerServiceTest {
         manufacturerDaoField.setAccessible(true);
         manufacturerDaoField.set(manufacturerService, manufacturerDao);
     }
-
 }
