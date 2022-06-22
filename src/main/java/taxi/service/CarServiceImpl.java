@@ -1,7 +1,6 @@
 package taxi.service;
 
 import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import taxi.dao.CarDao;
@@ -25,7 +24,8 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public void removeDriverFromCar(Driver driver, Car car) {
-        logger.info("removeDriverFromCar method was called. Params: driver {}; car {}", driver, car);
+        logger.info("removeDriverFromCar method was called. Params: driver {}; car {}",
+                driver, car);
         car.getDrivers().remove(driver);
         carDao.update(car);
     }

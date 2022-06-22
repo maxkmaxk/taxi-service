@@ -18,6 +18,7 @@ import taxi.util.ConnectionUtil;
 @Dao
 public class DriverDaoImpl implements DriverDao {
     private static final Logger logger = LogManager.getLogger(DriverDaoImpl.class);
+
     @Override
     public Driver create(Driver driver) {
         String query = "INSERT INTO drivers (name, license_number, login, password) "

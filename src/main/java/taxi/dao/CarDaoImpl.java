@@ -16,7 +16,6 @@ import taxi.lib.Dao;
 import taxi.model.Car;
 import taxi.model.Driver;
 import taxi.model.Manufacturer;
-import taxi.service.ManufacturerServiceImpl;
 import taxi.util.ConnectionUtil;
 
 @Dao

@@ -18,6 +18,7 @@ import taxi.util.ConnectionUtil;
 @Dao
 public class ManufacturerDaoImpl implements ManufacturerDao {
     private static final Logger logger = LogManager.getLogger(ManufacturerDaoImpl.class);
+
     @Override
     public Manufacturer create(Manufacturer manufacturer) {
         String query = "INSERT INTO manufacturers (name, country) VALUES (?,?)";
