@@ -2,7 +2,7 @@
 ***
 Taxi-service is a web application training project, that provide CRUD operations with
 taxi service entities,
-such as drivers, cars, car manufacturers. And store data in database (MySQL).
+such as drivers, cars, car manufacturers.
 
 Project has 3-layer architecture
 - data access layer
@@ -95,8 +95,11 @@ Project has 3-layer architecture
 * JSTL
 
 ### Startup
-Install java servlet container (tested on TomCat 9.0.58), MySQL DBMS (tested on MySQL 
-8.0.26). Create database schema using script 'resources/init_db.sql'. Configure connection 
-to database in the ConnectionUtil class. Rebuild project with Maven - run 'mvn clean package'.
-[Deploy application to TomCat](https://www.baeldung.com/tomcat-deploy-war)
+***
+* install java servlet container (tested on TomCat 9.0.58)
+* install MySQL DBMS (tested on MySQL 8.0.26) 
+* create database schema using script 'resources/init_db.sql'
+* configure connection to database in the ConnectionUtil class 
+* rebuild project with Maven - run 'mvn clean package'
+* [Deploy application to TomCat](https://www.baeldung.com/tomcat-deploy-war)
 

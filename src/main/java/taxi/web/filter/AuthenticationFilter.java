@@ -11,7 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 public class AuthenticationFilter extends HttpFilter {
-    private static final Set<String> allowedUrls =
+    private static final Set<String> ALLOWED_URLS =
             Collections.unmodifiableSet(Set.of("/login", "/drivers/add"));
 
     @Override
@@ -19,7 +19,7 @@ public class AuthenticationFilter extends HttpFilter {
             throws IOException, ServletException {
         HttpSession session = req.getSession();
         Long userId = (Long) session.getAttribute("user_id");
-        if (userId != null || allowedUrls.contains(req.getServletPath())) {
+        if (userId != null || ALLOWED_URLS.contains(req.getServletPath())) {
             chain.doFilter(req, res);
             return;
         }

@@ -1,5 +1,6 @@
 package taxi.service;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,94 +21,101 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CarServiceTest {
-    private static final String MANUFACTURER_1_COUNTRY = "Manufacturer 1 country";
-    private static final String MANUFACTURER_1_NAME = "Manufacturer 1 name";
-    private static final Long MANUFACTURER_1_ID = 1l;
-    private static final Manufacturer MANUFACTURER_1 = ModelsGenerator.generateManufacturer(
-            MANUFACTURER_1_COUNTRY, MANUFACTURER_1_NAME);
-    private static final String MANUFACTURER_2_COUNTRY = "Manufacturer 2 country";
-    private static final String MANUFACTURER_2_NAME = "Manufacturer 2 name";
-    private static final Long MANUFACTURER_2_ID = 2l;
-    private static final Manufacturer MANUFACTURER_2 = ModelsGenerator.generateManufacturer(
-            MANUFACTURER_2_COUNTRY, MANUFACTURER_2_NAME);
 
-    private static final String DRIVER_1_NAME = "driver 1";
-    private static final String DRIVER_1_LOGIN = "driver1@mail.com";
-    private static final String DRIVER_1_PASSWORD = "driver 1 password";
-    private static final String DRIVER_1_LICENSENUMBER = "driver 1 password";
-    private static final Long DRIVER_1_ID = 1l;
-    private static final Driver DRIVER_1 = ModelsGenerator.generateDriver(DRIVER_1_LOGIN,
-            DRIVER_1_NAME, DRIVER_1_PASSWORD, DRIVER_1_LICENSENUMBER);
-    private static final String DRIVER_2_NAME = "driver 2";
-    private static final String DRIVER_2_LOGIN = "driver2@mail.com";
-    private static final String DRIVER_2_PASSWORD = "driver 2 password";
-    private static final String DRIVER_2_LICENSENUMBER = "driver 2 password";
-    private static final Long DRIVER_2_ID = 2l;
-    private static final Driver DRIVER_2 = ModelsGenerator.generateDriver(DRIVER_2_LOGIN,
-            DRIVER_2_NAME, DRIVER_2_PASSWORD, DRIVER_2_LICENSENUMBER);
-
-    private static final String CAR_1_MODEL = "Car 1";
     private static final Long CAR_1_ID = 1l;
-    private static final Car CAR_1 = ModelsGenerator.generateCar(CAR_1_MODEL, MANUFACTURER_1);
-    private static final String CAR_2_MODEL = "Car 1";
-    private static final Long CAR_2_ID = 1l;
-    private static final Car CAR_2 = ModelsGenerator.generateCar(CAR_2_MODEL, MANUFACTURER_2);
+    private static final Long CAR_2_ID = 2l;
+    private static Driver firstDriver;
+    private static Driver secondDriver;
+    private static Car firstCar;
+    private static Car secondCar;
+    private static CarService carService = new CarServiceImpl();
+    private static CarDao carDao = Mockito.mock(CarDao.class);
 
-    private CarService carService = new CarServiceImpl();
-    private CarDao carDao = Mockito.mock(CarDao.class);
+    @BeforeAll
+    static void beforeAll() throws NoSuchFieldException, IllegalAccessException {
+        String manufacturer1Country = "Manufacturer 1 country";
+        String manufacturer1Name = "Manufacturer 1 name";
+        Manufacturer firstManufacturer = ModelsGenerator.generateManufacturer(
+                manufacturer1Country, manufacturer1Name);
+        String manufacturer2Country = "Manufacturer 2 country";
+        String manufacturer2Name = "Manufacturer 2 name";
+        Manufacturer secondManufacturer = ModelsGenerator.generateManufacturer(
+                manufacturer2Country, manufacturer2Name);
+
+        String driver1Name = "driver 1";
+        String driver1Login = "driver1@mail.com";
+        String driver1Password = "driver 1 password";
+        String driver1Licensenumber = "driver 1 password";
+        firstDriver = ModelsGenerator.generateDriver(driver1Login,
+                driver1Name, driver1Password, driver1Licensenumber);
+        String driver2Name = "driver 2";
+        String driver2Login = "driver2@mail.com";
+        String driver2Password = "driver 2 password";
+        String driver2Licensenumber = "driver 2 password";
+        secondDriver = ModelsGenerator.generateDriver(driver2Login,
+                driver2Name, driver2Password, driver2Licensenumber);
+
+        String car1Model = "Car 1";
+        firstCar = ModelsGenerator.generateCar(car1Model, firstManufacturer);
+        String car2Model = "Car 2";
+        secondCar = ModelsGenerator.generateCar(car2Model, secondManufacturer);
+        carService = new CarServiceImpl();
+        carDao = Mockito.mock(CarDao.class);
+        injectCarDao();
+    }
 
     @BeforeEach
     void setUp() throws NoSuchFieldException, IllegalAccessException {
-        injectCarDao();
-        CAR_1.getDrivers().clear();
-        CAR_2.getDrivers().clear();
+        firstCar.getDrivers().clear();
+        secondCar.getDrivers().clear();
+        Mockito.reset(carDao);
     }
 
     @Test
     void addDriverToCar_Ok() {
         Mockito.when(carDao.update(any())).thenAnswer(i -> i.getArgument(0));
-        carService.addDriverToCar(DRIVER_1, CAR_1);
-        assertEquals(1, CAR_1.getDrivers().size());
-        assertEquals(DRIVER_1, CAR_1.getDrivers().get(0));
-        carService.addDriverToCar(DRIVER_2, CAR_1);
-        assertEquals(2, CAR_1.getDrivers().size());
-        assertEquals(DRIVER_2, CAR_1.getDrivers().get(1));
+        carService.addDriverToCar(firstDriver, firstCar);
+        assertEquals(1, firstCar.getDrivers().size());
+        assertEquals(firstDriver, firstCar.getDrivers().get(0));
+        carService.addDriverToCar(secondDriver, firstCar);
+        assertEquals(2, firstCar.getDrivers().size());
+        assertEquals(secondDriver, firstCar.getDrivers().get(1));
     }
 
     @Test
     void addDriverToCar_dataProcException_notOk() {
         Mockito.when(carDao.update(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
-                () -> carService.addDriverToCar(DRIVER_1, CAR_1));
+                () -> carService.addDriverToCar(firstDriver, firstCar));
     }
 
     @Test
     void removeDriverFromCar_Ok() {
-        CAR_1.getDrivers().add(DRIVER_1);
-        CAR_1.getDrivers().add(DRIVER_2);
+        firstCar.getDrivers().add(firstDriver);
+        firstCar.getDrivers().add(secondDriver);
         Mockito.when(carDao.update(any())).thenAnswer(i -> i.getArgument(0));
-        carService.removeDriverFromCar(DRIVER_1, CAR_1);
-        assertEquals(1, CAR_1.getDrivers().size());
-        assertFalse(CAR_1.getDrivers().contains(DRIVER_1));
-        assertTrue(CAR_1.getDrivers().contains(DRIVER_2));
-        carService.removeDriverFromCar(DRIVER_2, CAR_1);
-        assertTrue(CAR_1.getDrivers().isEmpty());
+        carService.removeDriverFromCar(firstDriver, firstCar);
+        assertEquals(1, firstCar.getDrivers().size());
+        assertFalse(firstCar.getDrivers().contains(firstDriver));
+        assertTrue(firstCar.getDrivers().contains(secondDriver));
+        carService.removeDriverFromCar(secondDriver, firstCar);
+        assertTrue(firstCar.getDrivers().isEmpty());
     }
 
     @Test
     void getAllByDriver_Ok() {
-        CAR_1.getDrivers().add(DRIVER_1);
+        firstCar.getDrivers().add(firstDriver);
         List<Car> expected = new ArrayList<>();
-        expected.add(CAR_1);
-        Mockito.when(carDao.getAllByDriver(DRIVER_1.getId())).thenReturn(expected);
-        List<Car> actual = carService.getAllByDriver(DRIVER_1.getId());
+        expected.add(firstCar);
+        Mockito.when(carDao.getAllByDriver(firstDriver.getId())).thenReturn(expected);
+        List<Car> actual = carService.getAllByDriver(firstDriver.getId());
         assertNotNull(actual);
         assertEquals(expected.size(), actual.size());
         assertTrue(actual.containsAll(expected));
-        CAR_2.getDrivers().add(DRIVER_2);
-        expected.add(CAR_2);
-        Mockito.when(carDao.getAllByDriver(DRIVER_1.getId())).thenReturn(expected);
-        actual = carService.getAllByDriver(DRIVER_1.getId());
+        secondCar.getDrivers().add(secondDriver);
+        expected.add(secondCar);
+        Mockito.when(carDao.getAllByDriver(firstDriver.getId())).thenReturn(expected);
+        actual = carService.getAllByDriver(firstDriver.getId());
         assertNotNull(actual);
         assertEquals(expected.size(), actual.size());
         assertTrue(actual.containsAll(expected));
@@ -117,42 +125,42 @@ class CarServiceTest {
     void getAllByDriver_dataProcException_notOk() {
         Mockito.when(carDao.getAllByDriver(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
-                () -> carService.getAllByDriver(DRIVER_1.getId()));
+                () -> carService.getAllByDriver(firstDriver.getId()));
     }
 
     @Test
     void create_Ok() {
-        Mockito.when(carDao.create(CAR_1))
-                .thenReturn(ModelsGenerator.generatePersistentCar(CAR_1_ID, CAR_1));
-        Car actual = carService.create(CAR_1);
+        Mockito.when(carDao.create(firstCar))
+                .thenReturn(ModelsGenerator.generatePersistentCar(CAR_1_ID, firstCar));
+        Car actual = carService.create(firstCar);
         assertNotNull(actual);
-        assertEquals(CAR_1, actual);
-        Mockito.when(carDao.create(CAR_2))
-                .thenReturn(ModelsGenerator.generatePersistentCar(CAR_2_ID, CAR_2));
-        actual = carService.create(CAR_2);
+        assertEquals(firstCar, actual);
+        Mockito.when(carDao.create(secondCar))
+                .thenReturn(ModelsGenerator.generatePersistentCar(CAR_2_ID, secondCar));
+        actual = carService.create(secondCar);
         assertNotNull(actual);
-        assertEquals(CAR_2, actual);
+        assertEquals(secondCar, actual);
     }
 
     @Test
     void create_dataProcException_notOk() {
         Mockito.when(carDao.create(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
-                () -> carService.create(CAR_1));
+                () -> carService.create(firstCar));
     }
 
     @Test
     void get_Ok() {
         Mockito.when(carDao.get(CAR_1_ID)).thenReturn(Optional.of(
-                ModelsGenerator.generatePersistentCar(CAR_1_ID, CAR_1)));
+                ModelsGenerator.generatePersistentCar(CAR_1_ID, firstCar)));
         Car actual = carService.get(CAR_1_ID);
         assertNotNull(actual);
-        assertEquals(CAR_1, actual);
+        assertEquals(firstCar, actual);
         Mockito.when(carDao.get(CAR_2_ID)).thenReturn(Optional.of(
-                ModelsGenerator.generatePersistentCar(CAR_2_ID, CAR_2)));
+                ModelsGenerator.generatePersistentCar(CAR_2_ID, secondCar)));
         actual = carService.get(CAR_2_ID);
         assertNotNull(actual);
-        assertEquals(CAR_2, actual);
+        assertEquals(secondCar, actual);
     }
 
     @Test
@@ -172,36 +180,36 @@ class CarServiceTest {
     @Test
     void getAll_Ok() {
         Mockito.when(carDao.getAll()).thenReturn(List.of(
-                ModelsGenerator.generatePersistentCar(CAR_1_ID, CAR_1)));
+                ModelsGenerator.generatePersistentCar(CAR_1_ID, firstCar)));
         List<Car> actual = carService.getAll();
         assertNotNull(actual);
         assertEquals(1, actual.size());
-        assertTrue(actual.contains(CAR_1));
+        assertTrue(actual.contains(firstCar));
         Mockito.when(carDao.getAll()).thenReturn(List.of(
-                ModelsGenerator.generatePersistentCar(CAR_1_ID, CAR_1),
-                ModelsGenerator.generatePersistentCar(CAR_2_ID, CAR_2)));
+                ModelsGenerator.generatePersistentCar(CAR_1_ID, firstCar),
+                ModelsGenerator.generatePersistentCar(CAR_2_ID, secondCar)));
         actual = carService.getAll();
         assertNotNull(actual);
         assertEquals(2, actual.size());
-        assertTrue(actual.containsAll(List.of(CAR_1, CAR_2)));
+        assertTrue(actual.containsAll(List.of(firstCar, secondCar)));
     }
 
     @Test
     void update_Ok() {
         Mockito.when(carDao.update(any())).thenAnswer(i -> i.getArgument(0));
-        Car actual = carService.update(ModelsGenerator.generatePersistentCar(CAR_1_ID, CAR_1));
+        Car actual = carService.update(ModelsGenerator.generatePersistentCar(CAR_1_ID, firstCar));
         assertNotNull(actual);
-        assertEquals(CAR_1, actual);
-        actual = carService.update(ModelsGenerator.generatePersistentCar(CAR_2_ID, CAR_2));
+        assertEquals(firstCar, actual);
+        actual = carService.update(ModelsGenerator.generatePersistentCar(CAR_2_ID, secondCar));
         assertNotNull(actual);
-        assertEquals(CAR_2, actual);
+        assertEquals(secondCar, actual);
     }
 
     @Test
     void update_dataProcException_notOk() {
         Mockito.when(carDao.update(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
-                () -> carService.update(CAR_1));
+                () -> carService.update(firstCar));
     }
 
     @Test
@@ -227,7 +235,7 @@ class CarServiceTest {
                 () -> carService.delete(CAR_2_ID));
     }
 
-    private void injectCarDao() throws NoSuchFieldException, IllegalAccessException {
+    private static void injectCarDao() throws NoSuchFieldException, IllegalAccessException {
         Field carDaoField = CarServiceImpl.class.getDeclaredField("carDao");
         carDaoField.setAccessible(true);
         carDaoField.set(carService, carDao);

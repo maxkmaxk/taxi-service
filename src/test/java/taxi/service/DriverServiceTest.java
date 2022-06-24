@@ -1,5 +1,6 @@
 package taxi.service;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,56 +19,65 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 class DriverServiceTest {
-    private static final String DRIVER_1_NAME = "driver 1";
-    private static final String DRIVER_1_LOGIN = "driver1@mail.com";
-    private static final String DRIVER_1_PASSWORD = "driver 1 password";
-    private static final String DRIVER_1_LICENSENUMBER = "driver 1 password";
     private static final Long DRIVER_1_ID = 1l;
-    private static final Driver DRIVER_1 = ModelsGenerator.generateDriver(DRIVER_1_LOGIN,
-            DRIVER_1_NAME, DRIVER_1_PASSWORD, DRIVER_1_LICENSENUMBER);
-    private static final String DRIVER_2_NAME = "driver 2";
-    private static final String DRIVER_2_LOGIN = "driver2@mail.com";
-    private static final String DRIVER_2_PASSWORD = "driver 2 password";
-    private static final String DRIVER_2_LICENSENUMBER = "driver 2 password";
     private static final Long DRIVER_2_ID = 2l;
-    private static final Driver DRIVER_2 = ModelsGenerator.generateDriver(DRIVER_2_LOGIN,
-            DRIVER_2_NAME, DRIVER_2_PASSWORD, DRIVER_2_LICENSENUMBER);
-    private final DriverService driverService = new DriverServiceImpl();
-    private final DriverDao driverDao = Mockito.mock(DriverDao.class);
+    private static Driver firstDriver;
+    private static Driver secondDriver;
+    private static DriverService driverService;
+    private static DriverDao driverDao;
+
+    @BeforeAll
+    static void beforeAll() throws NoSuchFieldException, IllegalAccessException {
+        String driver1Name = "driver 1";
+        String driver1Login = "driver1@mail.com";
+        String driver1Password = "driver 1 password";
+        String driver1Licensenumber = "driver 1 password";
+        firstDriver = ModelsGenerator.generateDriver(driver1Login,
+                driver1Name, driver1Password, driver1Licensenumber);
+        String driver2Name = "driver 1";
+        String driver2Login = "driver1@mail.com";
+        String driver2Password = "driver 1 password";
+        String driver2Licensenumber = "driver 1 password";
+        secondDriver = ModelsGenerator.generateDriver(driver2Login,
+                driver2Name, driver2Password, driver2Licensenumber);
+        driverService = new DriverServiceImpl();
+        driverDao = Mockito.mock(DriverDao.class);
+        injectDriverDao();
+    }
 
     @BeforeEach
     void setUp() throws NoSuchFieldException, IllegalAccessException {
-        injectDriverDao();
+        Mockito.reset(driverDao);
     }
 
     @Test
     void create_Ok() {
-        Mockito.when(driverDao.create(DRIVER_1)).thenReturn(ModelsGenerator
-                .generatePersistentDriver(DRIVER_1_ID, DRIVER_1));
-        Mockito.when(driverDao.create(DRIVER_2)).thenReturn(ModelsGenerator
-                .generatePersistentDriver(DRIVER_2_ID, DRIVER_2));
-        Driver actual = driverService.create(DRIVER_1);
+        Mockito.when(driverDao.create(firstDriver)).thenReturn(ModelsGenerator
+                .generatePersistentDriver(DRIVER_1_ID, firstDriver));
+        Mockito.when(driverDao.create(secondDriver)).thenReturn(ModelsGenerator
+                .generatePersistentDriver(DRIVER_2_ID, secondDriver));
+        Driver actual = driverService.create(firstDriver);
         assertNotNull(actual);
-        assertEquals(DRIVER_1, actual);
-        actual = driverService.create(DRIVER_2);
+        assertEquals(firstDriver, actual);
+        actual = driverService.create(secondDriver);
         assertNotNull(actual);
-        assertEquals(DRIVER_2, actual);
+        assertEquals(secondDriver, actual);
     }
 
     @Test
     void get_Ok() {
         Mockito.when(driverDao.get(DRIVER_1_ID))
                 .thenReturn(Optional.of(ModelsGenerator.generatePersistentDriver(DRIVER_1_ID,
-                        DRIVER_1)));
+                        firstDriver)));
         Mockito.when(driverDao.get(DRIVER_2_ID))
                 .thenReturn(Optional.of(ModelsGenerator.generatePersistentDriver(DRIVER_2_ID,
-                        DRIVER_2)));
+                        secondDriver)));
         Driver actual = driverService.get(DRIVER_1_ID);
         assertNotNull(actual);
-        assertEquals(DRIVER_1, actual);
+        assertEquals(firstDriver, actual);
         actual = driverService.get(DRIVER_2_ID);
         assertNotNull(actual);
-        assertEquals(DRIVER_2, actual);
+        assertEquals(secondDriver, actual);
     }
 
     @Test
@@ -86,8 +96,8 @@ class DriverServiceTest {
     @Test
     void getAll_Ok() {
         List<Driver> expected = List.of(ModelsGenerator.generatePersistentDriver(DRIVER_1_ID,
-                DRIVER_1),
-                ModelsGenerator.generatePersistentDriver(DRIVER_2_ID, DRIVER_2));
+                firstDriver),
+                ModelsGenerator.generatePersistentDriver(DRIVER_2_ID, secondDriver));
         Mockito.when(driverDao.getAll()).thenReturn(expected);
         List<Driver> actual = driverService.getAll();
         assertEquals(expected.size(), actual.size());
@@ -112,13 +122,13 @@ class DriverServiceTest {
     void update_Ok() {
         Mockito.when(driverDao.update(any())).thenAnswer(i -> i.getArgument(0));
         Driver actual = driverService.update(ModelsGenerator.generatePersistentDriver(DRIVER_1_ID,
-                DRIVER_1));
+                firstDriver));
         assertNotNull(actual);
-        assertEquals(DRIVER_1, actual);
+        assertEquals(firstDriver, actual);
         actual = driverService.update(ModelsGenerator.generatePersistentDriver(DRIVER_2_ID,
-                DRIVER_2));
+                secondDriver));
         assertNotNull(actual);
-        assertEquals(DRIVER_2, actual);
+        assertEquals(secondDriver, actual);
     }
 
     @Test
@@ -126,7 +136,7 @@ class DriverServiceTest {
         Mockito.when(driverDao.update(any())).thenThrow(DataProcessingException.class);
         assertThrows(DataProcessingException.class,
                 () -> driverService.update(ModelsGenerator.generatePersistentDriver(DRIVER_1_ID,
-                        DRIVER_1)));
+                        firstDriver)));
     }
 
     @Test
@@ -150,23 +160,23 @@ class DriverServiceTest {
 
     @Test
     void findByLogin_Ok() {
-        Mockito.when(driverDao.findByLogin(DRIVER_1.getLogin()))
+        Mockito.when(driverDao.findByLogin(firstDriver.getLogin()))
                 .thenReturn(Optional.of(ModelsGenerator.generatePersistentDriver(DRIVER_1_ID,
-                        DRIVER_1)));
-        Mockito.when(driverDao.findByLogin(DRIVER_2.getLogin()))
+                        firstDriver)));
+        Optional<Driver> actual = driverService.findByLogin(firstDriver.getLogin());
+        assertNotNull(actual);
+        assertTrue(actual.isPresent());
+        assertEquals(firstDriver, actual.get());
+        Mockito.when(driverDao.findByLogin(secondDriver.getLogin()))
                 .thenReturn(Optional.of(ModelsGenerator.generatePersistentDriver(DRIVER_2_ID,
-                        DRIVER_2)));
-        Optional<Driver> actual = driverService.findByLogin(DRIVER_1.getLogin());
+                        secondDriver)));
+        actual = driverService.findByLogin(secondDriver.getLogin());
         assertNotNull(actual);
         assertTrue(actual.isPresent());
-        assertEquals(DRIVER_1, actual.get());
-        actual = driverService.findByLogin(DRIVER_2.getLogin());
-        assertNotNull(actual);
-        assertTrue(actual.isPresent());
-        assertEquals(DRIVER_2, actual.get());
+        assertEquals(secondDriver, actual.get());
     }
 
-    private void injectDriverDao() throws NoSuchFieldException, IllegalAccessException {
+    private static void injectDriverDao() throws NoSuchFieldException, IllegalAccessException {
         Field driverDaoField = DriverServiceImpl.class.getDeclaredField("driverDao");
         driverDaoField.setAccessible(true);
         driverDaoField.set(driverService, driverDao);
