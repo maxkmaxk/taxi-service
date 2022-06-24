@@ -22,7 +22,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             logger.info("login method returns driver: {}", driver.get().getName());
             return driver.get();
         }
-        logger.info("login method throws AuthenticationException");
         throw new AuthenticationException("Username or password was incorrect");
     }
 }
